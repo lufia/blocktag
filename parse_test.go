@@ -15,7 +15,7 @@ func TestParse(t *testing.T) {
 			Text: "[info]test[/info]",
 			Want: []*Block{
 				&Block{
-					Tag:  &Tag{Name: "info", Attrs: map[string]string{}},
+					Tag:  &Tag{Name: "info"},
 					Body: []byte("test"),
 				},
 			},
@@ -24,7 +24,7 @@ func TestParse(t *testing.T) {
 			Text: "B[info]test[title]xx[/title][/info]E",
 			Want: []*Block{
 				&Block{
-					Tag:  &Tag{Name: "info", Attrs: map[string]string{}},
+					Tag:  &Tag{Name: "info"},
 					Body: []byte("test[title]xx[/title]"),
 				},
 			},
@@ -33,11 +33,11 @@ func TestParse(t *testing.T) {
 			Text: "[info]test[/info][code]aaa[/code]",
 			Want: []*Block{
 				&Block{
-					Tag:  &Tag{Name: "info", Attrs: map[string]string{}},
+					Tag:  &Tag{Name: "info"},
 					Body: []byte("test"),
 				},
 				&Block{
-					Tag:  &Tag{Name: "code", Attrs: map[string]string{}},
+					Tag:  &Tag{Name: "code"},
 					Body: []byte("aaa"),
 				},
 			},

@@ -28,13 +28,18 @@ func ParseTag(tag []byte) (*Tag, error) {
 
 	var p Tag
 	p.Name = a[0]
-	p.Attrs = make(map[string]string)
 	for _, s := range a[1:] {
 		kv := strings.SplitN(s, "=", 2)
 		switch len(kv) {
 		case 1:
+			if p.Attrs == nil {
+				p.Attrs = make(map[string]string)
+			}
 			p.Attrs[kv[0]] = ""
 		case 2:
+			if p.Attrs == nil {
+				p.Attrs = make(map[string]string)
+			}
 			p.Attrs[kv[0]] = kv[1]
 		}
 	}
@@ -57,10 +62,7 @@ func (s *stream) advance(c rune) ([]byte, bool) {
 		c1 := s.s.Next()
 		switch {
 		case c1 == scanner.EOF:
-			if buf.Len() > 0 {
-				return buf.Bytes(), false
-			}
-			return nil, false
+			return buf.Bytes(), false
 		case c1 == c:
 			return buf.Bytes(), true
 		}

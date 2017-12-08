@@ -13,8 +13,7 @@ func TestParseTag(t *testing.T) {
 		{
 			tag: "tag",
 			want: &Tag{
-				Name:  "tag",
-				Attrs: map[string]string{},
+				Name: "tag",
 			},
 		},
 		{
