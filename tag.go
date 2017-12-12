@@ -13,10 +13,44 @@ var (
 	errSyntax   = errors.New("syntax error")
 )
 
+type Style int
+
+const (
+	Default Style = iota
+	Single
+)
+
+type Spec struct {
+	tags map[string]Style
+}
+
+func (spec *Spec) TagStyle(name string) Style {
+	return spec.tags[name]
+}
+
+var defaultSpec Spec
+
+// RegisterTag は特定のタグがどの書き方なのかをパーサに伝える。
+// styleがSingleの場合は、[tag]だけで完結するタグになるためBodyや閉じタグは無い。
+// デフォルトは閉じタグが必要な書き方となる。
+func RegisterTag(name string, style Style) {
+	if defaultSpec.tags == nil {
+		defaultSpec.tags = make(map[string]Style)
+	}
+	defaultSpec.tags[name] = style
+}
+
 // Tag はブロックの開始タグをあらわす。
 type Tag struct {
 	Name  string
 	Attrs map[string]string
+}
+
+func (tag *Tag) setAttr(name, value string) {
+	if tag.Attrs == nil {
+		tag.Attrs = make(map[string]string)
+	}
+	tag.Attrs[name] = value
 }
 
 // ParseTag は開始タグをパースする。
@@ -27,20 +61,24 @@ func ParseTag(tag []byte) (*Tag, error) {
 	}
 
 	var p Tag
+	if strings.Contains(a[0], ":") {
+		// 属性が1つだけの場合は[name:value]表記のタグもある
+		if len(a) != 1 {
+			return nil, errSyntax
+		}
+		x := strings.SplitN(a[0], ":", 2)
+		p.Name = x[0]
+		p.setAttr("value", x[1])
+		return &p, nil
+	}
 	p.Name = a[0]
 	for _, s := range a[1:] {
 		kv := strings.SplitN(s, "=", 2)
 		switch len(kv) {
 		case 1:
-			if p.Attrs == nil {
-				p.Attrs = make(map[string]string)
-			}
-			p.Attrs[kv[0]] = ""
+			p.setAttr(kv[0], "")
 		case 2:
-			if p.Attrs == nil {
-				p.Attrs = make(map[string]string)
-			}
-			p.Attrs[kv[0]] = kv[1]
+			p.setAttr(kv[0], kv[1])
 		}
 	}
 	return &p, nil
@@ -78,6 +116,9 @@ func (s *stream) readBlock() (*Block, error) {
 	tag, err := s.readTag()
 	if err != nil {
 		return nil, err
+	}
+	if defaultSpec.TagStyle(tag.Name) == Single {
+		return &Block{Tag: tag}, nil
 	}
 	body, err := s.advanceUntil(tag)
 	if err != nil {

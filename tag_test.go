@@ -30,6 +30,13 @@ func TestParseTag(t *testing.T) {
 				Attrs: map[string]string{"uid": "1", "to": "aaa", "flag": ""},
 			},
 		},
+		{
+			tag: "name:1",
+			want: &Tag{
+				Name:  "name",
+				Attrs: map[string]string{"value": "1"},
+			},
+		},
 	}
 	for _, v := range tab {
 		tag, err := ParseTag([]byte(v.tag))
