@@ -19,6 +19,13 @@ type Tag struct {
 	Attrs map[string]string
 }
 
+func (tag *Tag) setAttr(name, value string) {
+	if tag.Attrs == nil {
+		tag.Attrs = make(map[string]string)
+	}
+	tag.Attrs[name] = value
+}
+
 // ParseTag は開始タグをパースする。
 func ParseTag(tag []byte) (*Tag, error) {
 	a := strings.Fields(string(tag))
@@ -27,20 +34,24 @@ func ParseTag(tag []byte) (*Tag, error) {
 	}
 
 	var p Tag
+	if strings.Contains(a[0], ":") {
+		// 属性が1つだけの場合は[name:value]表記のタグもある
+		if len(a) != 1 {
+			return nil, errSyntax
+		}
+		x := strings.SplitN(a[0], ":", 2)
+		p.Name = x[0]
+		p.setAttr("value", x[1])
+		return &p, nil
+	}
 	p.Name = a[0]
 	for _, s := range a[1:] {
 		kv := strings.SplitN(s, "=", 2)
 		switch len(kv) {
 		case 1:
-			if p.Attrs == nil {
-				p.Attrs = make(map[string]string)
-			}
-			p.Attrs[kv[0]] = ""
+			p.setAttr(kv[0], "")
 		case 2:
-			if p.Attrs == nil {
-				p.Attrs = make(map[string]string)
-			}
-			p.Attrs[kv[0]] = kv[1]
+			p.setAttr(kv[0], kv[1])
 		}
 	}
 	return &p, nil
