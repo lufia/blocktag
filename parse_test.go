@@ -42,7 +42,26 @@ func TestParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			Text: "[To:xxx][info]test[/info]",
+			Want: []*Block{
+				&Block{
+					Tag: &Tag{
+						Name: "To",
+						Attrs: map[string]string{
+							"value": "xxx",
+						},
+					},
+				},
+				&Block{
+					Tag:  &Tag{Name: "info"},
+					Body: []byte("test"),
+				},
+			},
+		},
 	}
+
+	RegisterTag("To", Single)
 	for _, v := range tab {
 		r := strings.NewReader(v.Text)
 		a, err := Parse(r)
